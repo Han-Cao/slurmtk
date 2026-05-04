@@ -5,9 +5,10 @@
 # Default values
 ACCOUNT=""
 PARTITION=""
-CORES=8
+CORES=4
+MEMORY=""
 GRES=""
-TIME=5-0
+TIME=""
 
 PROVIDER="microsoft"
 LOGDIR="$HOME"
@@ -15,9 +16,12 @@ LOGDIR="$HOME"
 # Display help function
 show_help() {
     echo "Usage: stunnel [-A account] [-p partition] [-c cores] [-t time] [-l logdir] [-a provider]"
+    echo ""
+    echo "Leave arguments as empty strings to use SLURM's default configuration:"
     echo "  -A ACCOUNT     Charge job to specified account (default: '$ACCOUNT')"
     echo "  -p PARTITION   Partition requested (default: '$PARTITION')"
     echo "  -c CORES       Number of requested cpus (default: '$CORES')"
+    echo "  -m MEMORY      Minimum amount of real memory (default: '')"
     echo "  -g GRES        Required generic resources (default: '$GRES')"
     echo "  -t TIME        Time limit (default: '$TIME')"
     echo "  -l LOGDIR      Directory for log file (default: '$LOGDIR')"
@@ -37,6 +41,9 @@ while getopts "A:p:c:t:l:a:h" opt; do
       ;;
     c)
       CORES="$OPTARG"
+      ;;
+    m)
+      MEMORY="$OPTARG"
       ;;
     g)
       GRES="$OPTARG"
@@ -80,11 +87,14 @@ fi
 if [ -n "$CORES" ]; then
     sbatch_args="$sbatch_args -c $CORES"
 fi
-if [ -n "$TIME" ]; then
-    sbatch_args="$sbatch_args -t $TIME"
+if [ -n "$MEMORY" ]; then
+    sbatch_args="$sbatch_args --mem=$MEMORY"
 fi
 if [ -n "$GRES" ]; then
     sbatch_args="$sbatch_args --gres=$GRES"
+fi
+if [ -n "$TIME" ]; then
+    sbatch_args="$sbatch_args -t $TIME"
 fi
 
 # required arguments

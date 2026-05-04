@@ -67,24 +67,26 @@ Submit a job that launches a VS Code remote tunnel (`code tunnel`) on a node.
 
 ```bash
 Usage: stunnel [-A account] [-p partition] [-c cores] [-t time] [-l logdir] [-a provider]
+
+Leave arguments as empty strings to use SLURM's default configuration:
   -A ACCOUNT     Charge job to specified account (default: '')
   -p PARTITION   Partition requested (default: '')
-  -c CORES       Number of requested cpus (default: '8')
+  -c CORES       Number of requested cpus (default: '4')
+  -m MEMORY      Minimum amount of real memory (default: '')
   -g GRES        Required generic resources (default: '')
-  -t TIME        Time limit (default: '5-0')
+  -t TIME        Time limit (default: '')
   -l LOGDIR      Directory for log file (default: '$HOME')
   -a PROVIDER    VS code tunnel auth provider: microsoft or github (default: 'microsoft')
-  -h             Display this help message
 ```
 
 **Note**: On a new machine, you may need to first configure the tunnel service manually by running `code tunnel` and following the prompts.
 
 **Example:**
 
-Submit a tunnel job on the cpu partition with 4 cores
+Submit a tunnel job on the cpu partition with 4 cores and a 1-day time limit:
 
 ```bash
-stunnel -A myaccount -p cpu -c 4 -t 1-0
+stunnel -p cpu -c 4 -t 1-0
 ```
 
 Wait for VS Code to launch and print the tunnel authentication URL in the log file (`$HOME/tunnel.<timestamp>.log`). This should take < 2 minutes.
@@ -100,9 +102,10 @@ The default configuration can be modified to fit your needs by editing the `stun
 # Default values         # Corresponding option
 ACCOUNT=""               # sbatch -A
 PARTITION=""             # sbatch -p
-CORES=8                  # sbatch -c
+CORES=4                  # sbatch -c
+MEMORY=""                # sbatch --mem
 GRES=""                  # sbatch --gres
-TIME=5-0                 # sbatch -t
+TIME=""                  # sbatch -t
 
 PROVIDER="microsoft"     # code tunnel --provider
 LOGDIR="$HOME"           # srun -o
