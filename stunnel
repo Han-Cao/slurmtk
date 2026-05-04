@@ -1,0 +1,97 @@
+#!/bin/bash
+
+# sbatch wrapper for vscode tunnel
+
+# Default values
+ACCOUNT=""
+PARTITION=""
+CORES=8
+GRES=""
+TIME=5-0
+
+PROVIDER="microsoft"
+LOGDIR="$HOME"
+
+# Display help function
+show_help() {
+    echo "Usage: stunnel [-A account] [-p partition] [-c cores] [-t time] [-l logdir] [-a provider]"
+    echo "  -A ACCOUNT     Charge job to specified account (default: '$ACCOUNT')"
+    echo "  -p PARTITION   Partition requested (default: '$PARTITION')"
+    echo "  -c CORES       Number of requested cpus (default: '$CORES')"
+    echo "  -g GRES        Required generic resources (default: '$GRES')"
+    echo "  -t TIME        Time limit (default: '$TIME')"
+    echo "  -l LOGDIR      Directory for log file (default: '$LOGDIR')"
+    echo "  -a PROVIDER    VS code tunnel auth provider: microsoft or github (default: '$PROVIDER')"
+    echo "  -h             Display this help message"
+    exit 0
+}
+
+# Parse command line arguments
+while getopts "A:p:c:t:l:a:h" opt; do
+  case $opt in
+    A)
+      ACCOUNT="$OPTARG"
+      ;;
+    p)
+      PARTITION="$OPTARG"
+      ;;
+    c)
+      CORES="$OPTARG"
+      ;;
+    g)
+      GRES="$OPTARG"
+      ;;
+    t)
+      TIME="$OPTARG"
+      ;;
+    l)
+      LOGDIR="$OPTARG"
+      ;;
+    a)
+      PROVIDER="$OPTARG"
+      ;;
+    h)
+      show_help
+      ;;
+    \?)
+      echo "Invalid option: -$OPTARG" >&2
+      echo "Use -h for help" >&2
+      exit 1
+      ;;
+    :)
+      echo "Option -$OPTARG requires an argument." >&2
+      echo "Use -h for help" >&2
+      exit 1
+      ;;
+  esac
+done
+
+# use date + time as suffix for unique log file
+today=$(date +%Y%m%d_%H%M%S)
+
+# generate sbatch arg string, skip if empty
+sbatch_args=""
+if [ -n "$ACCOUNT" ]; then
+    sbatch_args="$sbatch_args -A $ACCOUNT"
+fi
+if [ -n "$PARTITION" ]; then
+    sbatch_args="$sbatch_args -p $PARTITION"
+fi
+if [ -n "$CORES" ]; then
+    sbatch_args="$sbatch_args -c $CORES"
+fi
+if [ -n "$TIME" ]; then
+    sbatch_args="$sbatch_args -t $TIME"
+fi
+if [ -n "$GRES" ]; then
+    sbatch_args="$sbatch_args --gres=$GRES"
+fi
+
+# required arguments
+sbatch_args="$sbatch_args -o $LOGDIR/tunnel.${today}.log --job-name stunnel"
+
+# Submit tunnel job
+sbatch $sbatch_args --wrap="
+srun --unbuffered code tunnel user login --provider ${PROVIDER}
+code tunnel
+"
