@@ -31,7 +31,7 @@ show_help() {
 }
 
 # Parse command line arguments
-while getopts "A:p:c:t:l:a:h" opt; do
+while getopts "A:p:c:m:g:t:l:a:h" opt; do
   case $opt in
     A)
       ACCOUNT="$OPTARG"
